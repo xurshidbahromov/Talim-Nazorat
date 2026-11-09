@@ -1224,3 +1224,228 @@ class StatusPill extends StatelessWidget {
     );
   }
 }
+
+/// Foydalanuvchini faollashtiruvchi premium bo'sh holat vidjeti (Apple / Linear uslubida)
+class EmptyStateView extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String? actionLabel;
+  final IconData? actionIcon;
+  final VoidCallback? onAction;
+  final String? secondaryActionLabel;
+  final IconData? secondaryActionIcon;
+  final VoidCallback? onSecondaryAction;
+  final Widget? customAction;
+  final Color? accentColor;
+  final bool compact;
+  final bool boxed;
+  final double maxWidth;
+
+  const EmptyStateView({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.actionLabel,
+    this.actionIcon,
+    this.onAction,
+    this.secondaryActionLabel,
+    this.secondaryActionIcon,
+    this.onSecondaryAction,
+    this.customAction,
+    this.accentColor,
+    this.compact = false,
+    this.boxed = true,
+    this.maxWidth = 480,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveAccent = accentColor ?? AppColors.primary;
+    final isDark = AppColors.isDark;
+
+    final iconBoxSize = compact ? 48.0 : 56.0;
+    final iconSize = compact ? 22.0 : 26.0;
+    final haloSize = compact ? 70.0 : 82.0;
+
+    final haloWidget = Stack(
+      alignment: Alignment.center,
+      children: [
+        // 1. Mayin halo doirasi (yumshoq jilo)
+        Container(
+          width: haloSize,
+          height: haloSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                effectiveAccent.withValues(alpha: isDark ? 0.18 : 0.12),
+                effectiveAccent.withValues(alpha: 0.0),
+              ],
+            ),
+          ),
+        ),
+        // 2. Konsentrik ichki ikonka konteyneri
+        Container(
+          width: iconBoxSize,
+          height: iconBoxSize,
+          decoration: BoxDecoration(
+            color: isDark
+                ? effectiveAccent.withValues(alpha: 0.16)
+                : AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(compact ? 15 : 18),
+            border: Border.all(
+              color: effectiveAccent.withValues(alpha: isDark ? 0.32 : 0.22),
+              width: 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: effectiveAccent.withValues(alpha: isDark ? 0.20 : 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            icon,
+            size: iconSize,
+            color: effectiveAccent,
+          ),
+        ),
+      ],
+    );
+
+    Widget? buttonsRow;
+    if (customAction != null) {
+      buttonsRow = customAction;
+    } else {
+      final hasPrimary = actionLabel != null && onAction != null;
+      final hasSecondary = secondaryActionLabel != null && onSecondaryAction != null;
+
+      if (hasPrimary || hasSecondary) {
+        buttonsRow = LayoutBuilder(
+          builder: (context, constraints) {
+            final isNarrow = constraints.maxWidth < 420;
+
+            final primaryBtn = hasPrimary
+                ? HeaderActionButton(
+                    label: actionLabel!,
+                    icon: actionIcon,
+                    onPressed: onAction!,
+                    variant: HeaderActionVariant.primary,
+                  )
+                : null;
+
+            final secondaryBtn = hasSecondary
+                ? HeaderActionButton(
+                    label: secondaryActionLabel!,
+                    icon: secondaryActionIcon,
+                    onPressed: onSecondaryAction!,
+                    variant: HeaderActionVariant.secondary,
+                  )
+                : null;
+
+            if (primaryBtn != null && secondaryBtn != null) {
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    primaryBtn,
+                    const SizedBox(height: 8),
+                    secondaryBtn,
+                  ],
+                );
+              }
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  secondaryBtn,
+                  const SizedBox(width: 10),
+                  primaryBtn,
+                ],
+              );
+            }
+
+            return primaryBtn ?? secondaryBtn ?? const SizedBox.shrink();
+          },
+        );
+      }
+    }
+
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        haloWidget,
+        SizedBox(height: compact ? 12 : 16),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: compact ? 15.0 : 16.5,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.25,
+            color: AppColors.textPrimary,
+            height: 1.25,
+          ),
+        ),
+        const SizedBox(height: 6),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 380),
+          child: Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: compact ? 12.3 : 13.0,
+              color: AppColors.textMuted,
+              fontWeight: FontWeight.w400,
+              height: 1.45,
+            ),
+          ),
+        ),
+        if (buttonsRow != null) ...[
+          SizedBox(height: compact ? 14 : 18),
+          buttonsRow,
+        ],
+      ],
+    );
+
+    final wrappedContent = boxed
+        ? SurfaceCard(
+            borderRadius: 26,
+            padding: EdgeInsets.symmetric(
+              horizontal: compact ? 22 : 30,
+              vertical: compact ? 24 : 34,
+            ),
+            child: content,
+          )
+        : content;
+
+    // Emil Kowalski qoidasi: Hech narsa scale(0) dan kirmaydi.
+    // 220ms easeOutCubic bilan yumshoq fade + kichik 8px siljish
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: TweenAnimationBuilder<double>(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          tween: Tween(begin: 0.0, end: 1.0),
+          builder: (context, val, child) {
+            return Opacity(
+              opacity: val,
+              child: Transform.translate(
+                offset: Offset(0, (1.0 - val) * 8.0),
+                child: child,
+              ),
+            );
+          },
+          child: wrappedContent,
+        ),
+      ),
+    );
+  }
+}
+

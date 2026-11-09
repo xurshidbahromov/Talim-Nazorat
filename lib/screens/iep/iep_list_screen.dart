@@ -691,55 +691,44 @@ class _IepListScreenState extends State<IepListScreen> {
             child:
                 plans.isEmpty
                     ? Center(
-                      child: SurfaceCard(
-                        borderRadius: 26,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 36,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.bookOpen,
-                              size: 34,
-                              color: AppColors.primary,
-                            ),
-                            const SizedBox(height: 14),
-                            Text(
-                              'Tanlangan filtr bo‘yicha ITR rejalari topilmadi',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15.5,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              'O‘quvchi uchun yangi individual ta’lim rejasini shakllantirishingiz mumkin.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textMuted,
-                                height: 1.4,
-                              ),
-                            ),
-                            if (canCreateIep) ...[
-                              const SizedBox(height: 18),
-                              OutlinedButton.icon(
-                                icon: const Icon(LucideIcons.plus, size: 16),
-                                label: const Text('ITR rejasi tuzish'),
-                                onPressed:
-                                    () => _showCreateIepDialog(
+                      child: _selectedStatus != 'Barchasi'
+                          ? EmptyStateView(
+                            icon: LucideIcons.filterX,
+                            title: '$_selectedStatus ITR rejalari topilmadi',
+                            subtitle:
+                                'Tanlangan holat bo‘yicha hozircha rejalar mavjud emas. Filtrlarni tozalang yoki yangi ITR tuzing.',
+                            secondaryActionLabel: 'Barchasini ko‘rish',
+                            secondaryActionIcon: LucideIcons.rotateCcw,
+                            onSecondaryAction:
+                                () => setState(() => _selectedStatus = 'Barchasi'),
+                            actionLabel:
+                                canCreateIep ? 'ITR rejasi tuzish' : null,
+                            actionIcon: canCreateIep ? LucideIcons.plus : null,
+                            onAction:
+                                canCreateIep
+                                    ? () => _showCreateIepDialog(
                                       context,
                                       currentUser,
-                                    ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
+                                    )
+                                    : null,
+                          )
+                          : EmptyStateView(
+                            icon: LucideIcons.bookOpen,
+                            title:
+                                'Individual ta’lim rejalari (ITR) mavjud emas',
+                            subtitle:
+                                'O‘quvchining ta’limiy ehtiyojlariga moslashtirilgan birinchi individual rejani shakllantiring.',
+                            actionLabel:
+                                canCreateIep ? 'Yangi ITR tuzish' : null,
+                            actionIcon: canCreateIep ? LucideIcons.plus : null,
+                            onAction:
+                                canCreateIep
+                                    ? () => _showCreateIepDialog(
+                                      context,
+                                      currentUser,
+                                    )
+                                    : null,
+                          ),
                     )
                     : ListView.separated(
                       padding: EdgeInsets.fromLTRB(

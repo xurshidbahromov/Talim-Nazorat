@@ -284,41 +284,40 @@ class _StudentsListScreenState extends State<StudentsListScreen> {
             child:
                 students.isEmpty
                     ? Center(
-                      child: SurfaceCard(
-                        borderRadius: 26,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 34,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.userSearch,
-                              size: 36,
-                              color: AppColors.primary,
-                            ),
-                            SizedBox(height: 14),
-                            Text(
-                              'O‘quvchilar topilmadi',
-                              style: TextStyle(
-                                fontSize: 15.5,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            SizedBox(height: 5),
-                            Text(
-                              'Qidiruv so‘zini yoki sinf filtrini o‘zgartirib ko‘ring',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: (app.searchQuery.isNotEmpty ||
+                              app.selectedGrade != null ||
+                              _selectedStatusColor != null)
+                          ? EmptyStateView(
+                            icon: LucideIcons.userX,
+                            title: 'O‘quvchilar topilmadi',
+                            subtitle:
+                                'Kiritilgan qidiruv so‘zi yoki faol filtrlar bo‘yicha hech qanday o‘quvchi topilmadi.',
+                            secondaryActionLabel: 'Filtrlarni tozalash',
+                            secondaryActionIcon: LucideIcons.rotateCcw,
+                            onSecondaryAction: () {
+                              app.resetFilters();
+                              setState(() => _selectedStatusColor = null);
+                            },
+                          )
+                          : EmptyStateView(
+                            icon: LucideIcons.users,
+                            title: 'Inklyuziv o‘quvchilar ro‘yxati bo‘sh',
+                            subtitle:
+                                'Hozircha tizimga inklyuziv ta’lim o‘quvchilari kiritilmagan. Birinchi o‘quvchini ro‘yxatga oling.',
+                            actionLabel: canAddStudent ? 'Yangi o‘quvchi' : null,
+                            actionIcon: canAddStudent ? LucideIcons.userPlus : null,
+                            onAction:
+                                canAddStudent
+                                    ? () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const AddStudentScreen(),
+                                        ),
+                                      );
+                                    }
+                                    : null,
+                          ),
                     )
                     : ListView.separated(
                       padding: EdgeInsets.fromLTRB(

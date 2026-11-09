@@ -100,43 +100,63 @@ class _AssessmentsListScreenState extends State<AssessmentsListScreen> {
             child:
                 filtered.isEmpty
                     ? Center(
-                      child: SurfaceCard(
-                        borderRadius: 26,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 36,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.clipboardList,
-                              size: 34,
-                              color: AppColors.primary,
-                            ),
-                            SizedBox(height: 14),
-                            Text(
-                              'Baholashlar topilmadi',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 15.5,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            SizedBox(height: 5),
-                            Text(
-                              'Boshqa yo‘nalishni tanlang yoki yangi baholash kiriting',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textMuted,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: _selectedCategory != 'Barchasi'
+                          ? EmptyStateView(
+                            icon: LucideIcons.filterX,
+                            title: '$_selectedCategory bo‘yicha baholashlar yo‘q',
+                            subtitle:
+                                'Ushbu toifada hali diagnostik baholash o‘tkazilmagan. Barcha yo‘nalishlarni ko‘ring yoki yangi baholash boshlang.',
+                            secondaryActionLabel: 'Barchasini ko‘rish',
+                            secondaryActionIcon: LucideIcons.rotateCcw,
+                            onSecondaryAction:
+                                () => setState(() => _selectedCategory = 'Barchasi'),
+                            actionLabel:
+                                currentRole.canCreateAssessments
+                                    ? 'Yangi baholash'
+                                    : null,
+                            actionIcon:
+                                currentRole.canCreateAssessments
+                                    ? LucideIcons.plus
+                                    : null,
+                            onAction:
+                                currentRole.canCreateAssessments
+                                    ? () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => const NewAssessmentScreen(),
+                                        ),
+                                      );
+                                    }
+                                    : null,
+                          )
+                          : EmptyStateView(
+                            icon: LucideIcons.clipboardCheck,
+                            title: 'Hozircha baholashlar o‘tkazilmagan',
+                            subtitle:
+                                'O‘quvchilarning psixologik, pedagogik va nutq rivojlanish darajasini aniqlash uchun birinchi baholashni boshlang.',
+                            actionLabel:
+                                currentRole.canCreateAssessments
+                                    ? 'Yangi baholash boshlash'
+                                    : null,
+                            actionIcon:
+                                currentRole.canCreateAssessments
+                                    ? LucideIcons.plus
+                                    : null,
+                            onAction:
+                                currentRole.canCreateAssessments
+                                    ? () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => const NewAssessmentScreen(),
+                                        ),
+                                      );
+                                    }
+                                    : null,
+                          ),
                     )
                     : ListView.separated(
                       padding: EdgeInsets.fromLTRB(

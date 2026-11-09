@@ -425,43 +425,29 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
             child:
                 referrals.isEmpty
                     ? Center(
-                      child: SurfaceCard(
-                        borderRadius: 26,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 36,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.arrowLeftRight,
-                              size: 34,
-                              color: AppColors.primary,
-                            ),
-                            SizedBox(height: 14),
-                            Text(
-                              'Ushbu holatda yo‘naltirishlar mavjud emas',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15.5,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            SizedBox(height: 5),
-                            Text(
-                              'Boshqa holat filtrini tanlang yoki yangi yo‘naltirish yarating.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textMuted,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: _statusFilter != 'Barchasi'
+                          ? EmptyStateView(
+                            icon: LucideIcons.filterX,
+                            title: '$_statusFilter yo‘naltirishlar topilmadi',
+                            subtitle:
+                                'Tanlangan holat bo‘yicha yo‘naltirishlar mavjud emas. Filtrlarni tozalang yoki yangi yo‘naltirish yarating.',
+                            secondaryActionLabel: 'Barchasini ko‘rish',
+                            secondaryActionIcon: LucideIcons.rotateCcw,
+                            onSecondaryAction:
+                                () => setState(() => _statusFilter = 'Barchasi'),
+                            actionLabel: 'Yangi yo‘naltirish',
+                            actionIcon: LucideIcons.plus,
+                            onAction: () => _showAddReferralDialog(context),
+                          )
+                          : EmptyStateView(
+                            icon: LucideIcons.gitPullRequest,
+                            title: 'Yo‘naltirishlar mavjud emas',
+                            subtitle:
+                                'O‘quvchini psixolog, logoped yoki tibbiy-pedagogik konsiliumga yo‘naltirish uchun yangi so‘rov shakllantiring.',
+                            actionLabel: 'Yangi yo‘naltirish',
+                            actionIcon: LucideIcons.plus,
+                            onAction: () => _showAddReferralDialog(context),
+                          ),
                     )
                     : ListView.separated(
                       padding: EdgeInsets.fromLTRB(

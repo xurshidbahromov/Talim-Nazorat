@@ -352,43 +352,12 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
             const SizedBox(height: 14),
 
             if (alerts.isEmpty)
-              SurfaceCard(
-                borderRadius: 26,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 38,
-                  horizontal: 24,
-                ),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        LucideIcons.shieldCheck,
-                        size: 38,
-                        color: AppColors.success,
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        'Ochiq monitoring signallari yo‘q',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15.5,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        'Barcha o‘quvchilar ko‘rsatkichlari me’yorida ketmoqda.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textMuted,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              EmptyStateView(
+                icon: LucideIcons.shieldCheck,
+                title: 'Ochiq monitoring signallari yo‘q',
+                subtitle:
+                    'Barcha inklyuziv o‘quvchilar rivojlanish ko‘rsatkichlari belgilangan me’yorlarda barqaror bormoqda.',
+                accentColor: AppColors.success,
               )
             else
               ...alerts.map((alt) => _buildAlertCard(context, alt)),

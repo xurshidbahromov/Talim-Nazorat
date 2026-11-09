@@ -12,6 +12,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/access_control_service.dart';
 import '../../services/child_status_service.dart';
 import '../../services/monthly_trend.dart';
+import '../assessments/assessments_list_screen.dart';
 import '../assessments/new_assessment_screen.dart';
 import '../iep/iep_list_screen.dart';
 import '../monitoring/monitoring_screen.dart';
@@ -553,37 +554,15 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           if (points.isEmpty)
-            GlassWell(
-              borderRadius: 12,
-              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 34),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(
-                      LucideIcons.chartLine,
-                      color: AppColors.textSubtle,
-                      size: 26,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Hozircha ma’lumot yo‘q',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Baholashlar yakunlangach, oylik natijalar shu yerda ko‘rinadi.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  ],
-                ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: EmptyStateView(
+                icon: LucideIcons.chartLine,
+                title: 'Hozircha ma’lumot yetarli emas',
+                subtitle:
+                    'Oylik rivojlanish grafigi uchun kamida bitta yakunlangan baholash talab etiladi.',
+                compact: true,
+                boxed: false,
               ),
             )
           else
@@ -773,10 +752,22 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 14),
           if (assessments.isEmpty)
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Text(
-                'Hozircha baholashlar yo‘q',
-                style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: EmptyStateView(
+                icon: LucideIcons.clipboardList,
+                title: 'Hozircha baholashlar yo‘q',
+                subtitle:
+                    'Yangi diagnostik baholash kiritilgach, so‘nggi natijalar shu yerda ko‘rinadi.',
+                compact: true,
+                boxed: false,
+                actionLabel: 'Baholash kiritish',
+                actionIcon: LucideIcons.plus,
+                onAction:
+                    () => _openModule(
+                      context,
+                      2,
+                      const AssessmentsListScreen(),
+                    ),
               ),
             )
           else
@@ -887,10 +878,22 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 14),
           if (sessions.isEmpty)
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Text(
-                'Rejalashtirilgan darslar yo‘q',
-                style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: EmptyStateView(
+                icon: LucideIcons.calendarDays,
+                title: 'Rejalashtirilgan darslar yo‘q',
+                subtitle:
+                    'Yaqin kunlarda o‘quvchilar bilan mashg‘ulotlar jadvali kutilmayapti.',
+                compact: true,
+                boxed: false,
+                actionLabel: 'Jadvalni ochish',
+                actionIcon: LucideIcons.arrowUpRight,
+                onAction:
+                    () => _openModule(
+                      context,
+                      3,
+                      const SessionsScreen(),
+                    ),
               ),
             )
           else

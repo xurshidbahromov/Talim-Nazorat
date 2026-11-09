@@ -480,43 +480,29 @@ class _SessionsScreenState extends State<SessionsScreen> {
             child:
                 filtered.isEmpty
                     ? Center(
-                      child: SurfaceCard(
-                        borderRadius: 26,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 36,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.calendarX,
-                              size: 34,
-                              color: AppColors.primary,
-                            ),
-                            SizedBox(height: 14),
-                            Text(
-                              'Mashg‘ulotlar topilmadi',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 15.5,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            SizedBox(height: 5),
-                            Text(
-                              'Boshqa holat filtrini tanlang yoki yangi dars rejalashtiring.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textMuted,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: _filter != 'Barchasi'
+                          ? EmptyStateView(
+                            icon: LucideIcons.calendarX,
+                            title: '$_filter mashg‘ulotlar topilmadi',
+                            subtitle:
+                                'Tanlangan holat bo‘yicha hech qanday dars mavjud emas. Filtrlarni tozalang yoki yangi mashg‘ulot rejalashtiring.',
+                            secondaryActionLabel: 'Barchasini ko‘rish',
+                            secondaryActionIcon: LucideIcons.rotateCcw,
+                            onSecondaryAction:
+                                () => setState(() => _filter = 'Barchasi'),
+                            actionLabel: 'Dars rejalashtirish',
+                            actionIcon: LucideIcons.calendarPlus,
+                            onAction: () => _showAddSessionDialog(context),
+                          )
+                          : EmptyStateView(
+                            icon: LucideIcons.calendar,
+                            title: 'Mashg‘ulotlar jadvali bo‘sh',
+                            subtitle:
+                                'O‘quvchilar bilan individual va metodik darslarni boshlash uchun birinchi mashg‘ulotni rejalashtiring.',
+                            actionLabel: 'Dars rejalashtirish',
+                            actionIcon: LucideIcons.calendarPlus,
+                            onAction: () => _showAddSessionDialog(context),
+                          ),
                     )
                     : ListView.separated(
                       padding: EdgeInsets.fromLTRB(

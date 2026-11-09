@@ -460,38 +460,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>
     return Center(
       child: ResponsivePageContainer(
         maxWidth: 480,
-        child: SurfaceCard(
-          borderRadius: 26,
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 38),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 36, color: AppColors.primary),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15.5,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textMuted,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-              if (action != null) ...[const SizedBox(height: 18), action],
-            ],
-          ),
+        child: EmptyStateView(
+          icon: icon,
+          title: title,
+          subtitle: subtitle ?? '',
+          customAction: action,
         ),
       ),
     );
