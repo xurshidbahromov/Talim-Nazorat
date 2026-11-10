@@ -179,6 +179,8 @@ class DashboardScreen extends StatelessWidget {
                         subtitle: 'Inklyuziv ro‘yxatda',
                         icon: LucideIcons.users,
                         color: AppColors.primary,
+                        trendLabel: app.totalStudentsCount > 0 ? 'Faol' : null,
+                        isPositiveTrend: true,
                         onTap:
                             () => _openModule(
                               context,
@@ -192,6 +194,9 @@ class DashboardScreen extends StatelessWidget {
                         subtitle: 'Ijro etilayotgan',
                         icon: LucideIcons.bookOpenCheck,
                         color: AppColors.info,
+                        progressPercent: app.totalStudentsCount > 0
+                            ? (app.activeIepCount / app.totalStudentsCount)
+                            : 0.0,
                         onTap:
                             () =>
                                 _openModule(context, 4, const IepListScreen()),
@@ -202,6 +207,7 @@ class DashboardScreen extends StatelessWidget {
                         subtitle: 'O‘tkazilgan va rejada',
                         icon: LucideIcons.calendarCheck2,
                         color: AppColors.purple,
+                        trendLabel: '${app.thisMonthSessionsCount} dars',
                         onTap:
                             () =>
                                 _openModule(context, 3, const SessionsScreen()),
@@ -213,6 +219,10 @@ class DashboardScreen extends StatelessWidget {
                         subtitle: 'Oldingi baholashlarga nisbatan',
                         icon: LucideIcons.trendingUp,
                         color: AppColors.success,
+                        trendLabel: app.averageDevelopmentGrowth > 0
+                            ? '↗ O‘sish'
+                            : 'Barqaror',
+                        isPositiveTrend: app.averageDevelopmentGrowth >= 0,
                         onTap:
                             () =>
                                 _openModule(context, 6, const ReportsScreen()),
@@ -1262,22 +1272,27 @@ class DashboardScreen extends StatelessWidget {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    String? trendLabel,
+    bool? isPositiveTrend,
+    double? progressPercent,
   }) {
+    final isDark = AppColors.isDark;
+
     return SurfaceCard(
       borderRadius: 26,
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: Text(
                   title,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 13,
@@ -1288,36 +1303,101 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(icon, color: color, size: 21),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: isDark ? 0.18 : 0.10),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: color.withValues(alpha: 0.22),
+                    width: 0.8,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Icon(icon, color: color, size: 16.5),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                  letterSpacing: -0.7,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Flexible(
+                    child: Text(
+                      value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -0.7,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                  if (trendLabel != null) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (isPositiveTrend == true
+                                ? AppColors.success
+                                : isPositiveTrend == false
+                                    ? AppColors.error
+                                    : AppColors.primary)
+                            .withValues(alpha: isDark ? 0.20 : 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        trendLabel,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: isPositiveTrend == true
+                              ? AppColors.success
+                              : isPositiveTrend == false
+                                  ? AppColors.error
+                                  : AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 3),
               Text(
                 subtitle,
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11.5,
                   color: AppColors.textMuted,
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              if (progressPercent != null) ...[
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: progressPercent.clamp(0.0, 1.0),
+                    minHeight: 4,
+                    backgroundColor: isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFE2E8F0),
+                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                  ),
+                ),
+              ],
             ],
           ),
         ],
