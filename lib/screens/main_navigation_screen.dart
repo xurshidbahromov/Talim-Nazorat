@@ -1,5 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -8,13 +9,16 @@ import '../core/constants/app_brand.dart';
 import '../core/constants/app_colors.dart';
 import '../core/widgets/brand_logo.dart';
 import '../core/widgets/glass_widgets.dart';
+import '../core/widgets/universal_command_palette.dart';
 import '../models/student_model.dart';
 import '../models/user_model.dart';
 import '../models/workspace_model.dart';
 import '../core/constants/specialist_workspaces.dart';
 import '../providers/app_provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/access_control_service.dart';
 import 'assessments/assessments_list_screen.dart';
+import 'assessments/new_assessment_screen.dart';
 import 'auth/logout_dialog.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'iep/iep_list_screen.dart';
@@ -24,6 +28,7 @@ import 'reports/reports_screen.dart';
 import 'sessions/sessions_screen.dart';
 import 'settings/settings_screen.dart';
 import 'specialists/specialists_screen.dart';
+import 'students/add_student_screen.dart';
 import 'students/student_detail_screen.dart';
 import 'students/students_list_screen.dart';
 import 'psychologist/tabs/psychologist_assessments_tab.dart';
@@ -409,178 +414,161 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   void _showQuickSearchModal(BuildContext context) {
     final app = context.read<AppProvider>();
-    String query = '';
+    final auth = context.read<AuthProvider>();
+    final user = auth.currentUser;
+    final canAddStudent =
+        user != null && AccessControlService().canEditStudent(user, null);
+    final canAddAssessment = user?.role.canCreateAssessments ?? false;
 
-    showDialog(
-      context: context,
-      barrierColor: const Color(0x420A1A3F),
-      builder:
-          (ctx) => StatefulBuilder(
-            builder: (context, setModalState) {
-              final results =
-                  app.students
-                      .where((s) {
-                        if (query.trim().isEmpty) return true;
-                        final q = query.toLowerCase();
-                        return s.fullName.toLowerCase().contains(q) ||
-                            s.grade.toLowerCase().contains(q) ||
-                            s.primaryNeed.toLowerCase().contains(q);
-                      })
-                      .take(8)
-                      .toList();
+    final items = <PaletteItem>[];
 
-              return Dialog(
-                backgroundColor: Colors.transparent,
-                insetPadding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 32,
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: 560,
-                    maxHeight: 500,
-                  ),
-                  child: GlassSurface(
-                    borderRadius: 20,
-                    blur: 18,
-                    opacity: 0.96,
-                    boxShadow: AppColors.elevatedShadow,
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          autofocus: true,
-                          onChanged: (v) => setModalState(() => query = v),
-                          decoration: InputDecoration(
-                            hintText:
-                                'O‘quvchi F.I.Sh., sinfi yoki yo‘nalishini qidiring...',
-                            prefixIcon: Icon(
-                              LucideIcons.search,
-                              size: 18,
-                              color: AppColors.primary,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: const Icon(LucideIcons.x, size: 17),
-                              onPressed: () => Navigator.pop(ctx),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 6),
-                          child: Text(
-                            'TEZKOR NATIJALAR',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.8,
-                              color: AppColors.textMuted,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Flexible(
-                          child:
-                              results.isEmpty
-                                  ? Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 34),
-                                    child: Center(
-                                      child: Text(
-                                        'So‘rov bo‘yicha o‘quvchi topilmadi',
-                                        style: TextStyle(
-                                          color: AppColors.textMuted,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                  : ListView.separated(
-                                    shrinkWrap: true,
-                                    itemCount: results.length,
-                                    separatorBuilder:
-                                        (_, _) => const SizedBox(height: 8),
-                                    itemBuilder: (_, i) {
-                                      final s = results[i];
-                                      return SurfaceCard(
-                                        elevated: false,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 15,
-                                          vertical: 12,
-                                        ),
-                                        borderRadius: 12,
-                                        onTap: () {
-                                          Navigator.pop(ctx);
-                                          Navigator.push(
-                                            this.context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (_) => StudentDetailScreen(
-                                                    studentId: s.id,
-                                                  ),
-                                            ),
-                                          );
-                                        },
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              LucideIcons.userRound,
-                                              size: 19,
-                                              color: AppColors.primary,
-                                            ),
-                                            const SizedBox(width: 13),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    s.fullName,
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color:
-                                                          AppColors.textPrimary,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 2),
-                                                  Text(
-                                                    '${s.grade}-sinf • ${s.primaryNeed}',
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color:
-                                                          AppColors.textMuted,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Icon(
-                                              LucideIcons.chevronRight,
-                                              size: 16,
-                                              color: AppColors.textSubtle,
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
+    // 1. Tezkor amallar
+    if (canAddStudent) {
+      items.add(
+        PaletteItem(
+          id: 'action_add_student',
+          title: 'Yangi o‘quvchi ro‘yxatga olish',
+          subtitle: 'Bolalar bazasiga yangi inklyuziv o‘quvchi anketasi qo‘shish',
+          icon: LucideIcons.userPlus,
+          iconColor: AppColors.primary,
+          type: PaletteItemType.action,
+          badge: 'Amal',
+          onSelect: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddStudentScreen()),
+            );
+          },
+        ),
+      );
+    }
+
+    if (canAddAssessment) {
+      items.add(
+        PaletteItem(
+          id: 'action_add_assessment',
+          title: 'Yangi kasbiy baholash boshlash',
+          subtitle: 'Psixologik, pedagogik yoki logopedik diagnostika kiritish',
+          icon: LucideIcons.clipboardPlus,
+          iconColor: AppColors.info,
+          type: PaletteItemType.action,
+          badge: 'Amal',
+          onSelect: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NewAssessmentScreen()),
+            );
+          },
+        ),
+      );
+    }
+
+    items.add(
+      PaletteItem(
+        id: 'action_add_session',
+        title: 'Yangi mashg‘ulot rejalashtirish',
+        subtitle: 'Darslar jadvaliga individual yoki guruh mashg‘uloti qo‘shish',
+        icon: LucideIcons.calendarPlus,
+        iconColor: AppColors.purple,
+        type: PaletteItemType.action,
+        badge: 'Amal',
+        onSelect: () {
+          Navigator.pop(context);
+          _selectTab(3);
+        },
+      ),
+    );
+
+    items.add(
+      PaletteItem(
+        id: 'action_add_iep',
+        title: 'Yangi ITR rejasi shakllantirish',
+        subtitle: 'Bolaga moslashtirilgan o‘quv maqsadlari va rejasini tuzish',
+        icon: LucideIcons.filePlus,
+        iconColor: AppColors.warning,
+        type: PaletteItemType.action,
+        badge: 'Amal',
+        onSelect: () {
+          Navigator.pop(context);
+          _selectTab(4);
+        },
+      ),
+    );
+
+    items.add(
+      PaletteItem(
+        id: 'action_add_referral',
+        title: 'Mutaxassisga yo‘naltirish (Referral)',
+        subtitle: 'Bolani psixolog, logoped yoki defektologga yo‘naltirish',
+        icon: LucideIcons.arrowRightLeft,
+        iconColor: AppColors.success,
+        type: PaletteItemType.action,
+        badge: 'Amal',
+        onSelect: () {
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ReferralsScreen()),
+          );
+        },
+      ),
+    );
+
+    // 2. Bo‘limlar va Navigatsiya
+    final navItems = _isPsychologist
+        ? [..._baseNavItems, ..._psychologistNavItems]
+        : _baseNavItems;
+
+    for (final nav in navItems) {
+      if (_canSee(nav.index)) {
+        items.add(
+          PaletteItem(
+            id: 'nav_${nav.index}',
+            title: nav.title,
+            subtitle: '${nav.group} • ${nav.shortLabel}',
+            icon: nav.icon,
+            iconColor: AppColors.textPrimary,
+            type: PaletteItemType.module,
+            badge: 'Bo‘lim',
+            onSelect: () {
+              Navigator.pop(context);
+              _selectTab(nav.index);
             },
           ),
+        );
+      }
+    }
+
+    // 3. O‘quvchilar bazasi
+    for (final s in app.students) {
+      items.add(
+        PaletteItem(
+          id: 'student_${s.id}',
+          title: s.fullName,
+          subtitle: '${s.grade}-sinf • ${s.primaryNeed}',
+          icon: LucideIcons.userRound,
+          iconColor: AppColors.primary,
+          type: PaletteItemType.student,
+          badge: '${s.grade}-sinf',
+          badgeColor: AppColors.primary,
+          onSelect: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => StudentDetailScreen(studentId: s.id),
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    UniversalCommandPaletteDialog.show(
+      context: context,
+      items: items,
     );
   }
 
@@ -1079,64 +1067,75 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final unreadNotifCount = app.myUnreadNotificationCount;
     final currentNav = _currentNavItem;
 
-    return AmbientMeshBackground(
-      child: Scaffold(
-        key: _scaffoldKey,
-        extendBody: !isDesktop,
-        backgroundColor: Colors.transparent,
-        drawer: isDesktop ? null : _buildMobileDrawer(context, auth, app, user),
-        body: Row(
-          children: [
-            if (isDesktop && _isDesktopSidebarOpen)
-              _buildDesktopGlassSidebar(context, auth, app, user),
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Positioned.fill(
-                    child: PageTransitionSwitcher(
-                      duration: const Duration(milliseconds: 280),
-                      reverse: !_isMovingForward,
-                      transitionBuilder: (
-                        child,
-                        primaryAnimation,
-                        secondaryAnimation,
-                      ) {
-                        return SharedAxisTransition(
-                          animation: primaryAnimation,
-                          secondaryAnimation: secondaryAnimation,
-                          transitionType: SharedAxisTransitionType.horizontal,
-                          fillColor: Colors.transparent,
-                          child: child,
-                        );
-                      },
-                      child: _buildActiveScreen(),
-                    ),
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.keyK, meta: true):
+            () => _showQuickSearchModal(context),
+        const SingleActivator(LogicalKeyboardKey.keyK, control: true):
+            () => _showQuickSearchModal(context),
+      },
+      child: Focus(
+        autofocus: true,
+        child: AmbientMeshBackground(
+          child: Scaffold(
+            key: _scaffoldKey,
+            extendBody: !isDesktop,
+            backgroundColor: Colors.transparent,
+            drawer: isDesktop ? null : _buildMobileDrawer(context, auth, app, user),
+            body: Row(
+              children: [
+                if (isDesktop && _isDesktopSidebarOpen)
+                  _buildDesktopGlassSidebar(context, auth, app, user),
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Positioned.fill(
+                        child: PageTransitionSwitcher(
+                          duration: const Duration(milliseconds: 280),
+                          reverse: !_isMovingForward,
+                          transitionBuilder: (
+                            child,
+                            primaryAnimation,
+                            secondaryAnimation,
+                          ) {
+                            return SharedAxisTransition(
+                              animation: primaryAnimation,
+                              secondaryAnimation: secondaryAnimation,
+                              transitionType: SharedAxisTransitionType.horizontal,
+                              fillColor: Colors.transparent,
+                              child: child,
+                            );
+                          },
+                          child: _buildActiveScreen(),
+                        ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: _buildTopGlassHeader(
+                          context: context,
+                          isDesktop: isDesktop,
+                          currentNav: currentNav,
+                          user: user,
+                          auth: auth,
+                          unreadNotifCount: unreadNotifCount,
+                        ),
+                      ),
+                      if (!isDesktop)
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: _buildMobileFrostedBottomBar(context, app),
+                        ),
+                    ],
                   ),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: _buildTopGlassHeader(
-                      context: context,
-                      isDesktop: isDesktop,
-                      currentNav: currentNav,
-                      user: user,
-                      auth: auth,
-                      unreadNotifCount: unreadNotifCount,
-                    ),
-                  ),
-                  if (!isDesktop)
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: _buildMobileFrostedBottomBar(context, app),
-                    ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -1336,7 +1335,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 14,
-                                  vertical: 8,
+                                  vertical: 7.5,
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.glassWellFill,
@@ -1351,16 +1350,39 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                   children: [
                                     Icon(
                                       LucideIcons.search,
-                                      size: 15,
+                                      size: 14.5,
                                       color: AppColors.primary,
                                     ),
-                                    SizedBox(width: 8),
+                                    const SizedBox(width: 8),
                                     Text(
-                                      'O‘quvchi qidirish...',
+                                      'Tezkor qidiruv...',
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: 12.5,
                                         color: AppColors.textMuted,
                                         fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 5,
+                                        vertical: 1.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.surface,
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: AppColors.border,
+                                          width: 0.8,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '⌘K',
+                                        style: TextStyle(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textMuted,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -1371,7 +1393,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         else
                           _buildHeaderIconAction(
                             icon: LucideIcons.search,
-                            tooltip: 'Qidirish',
+                            tooltip: 'Tezkor qidiruv (⌘K)',
                             onTap: () => _showQuickSearchModal(context),
                           ),
                         Stack(
