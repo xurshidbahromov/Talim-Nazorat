@@ -688,8 +688,9 @@ class _IepListScreenState extends State<IepListScreen> {
           ),
           const SizedBox(height: 9),
           Expanded(
-            child:
-                plans.isEmpty
+            child: app.isLoading
+                ? const ShimmerListSkeleton(count: 4, itemHeight: 110)
+                : plans.isEmpty
                     ? Center(
                       child: _selectedStatus != 'Barchasi'
                           ? EmptyStateView(

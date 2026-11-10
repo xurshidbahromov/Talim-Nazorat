@@ -422,8 +422,9 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
           const SizedBox(height: 9),
 
           Expanded(
-            child:
-                referrals.isEmpty
+            child: app.isLoading
+                ? const ShimmerListSkeleton(count: 4, itemHeight: 90)
+                : referrals.isEmpty
                     ? Center(
                       child: _statusFilter != 'Barchasi'
                           ? EmptyStateView(

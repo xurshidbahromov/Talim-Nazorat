@@ -97,8 +97,9 @@ class _AssessmentsListScreenState extends State<AssessmentsListScreen> {
           const SizedBox(height: 9),
 
           Expanded(
-            child:
-                filtered.isEmpty
+            child: app.isLoading
+                ? const ShimmerListSkeleton(count: 5, itemHeight: 88)
+                : filtered.isEmpty
                     ? Center(
                       child: _selectedCategory != 'Barchasi'
                           ? EmptyStateView(

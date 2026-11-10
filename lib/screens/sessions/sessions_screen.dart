@@ -477,8 +477,9 @@ class _SessionsScreenState extends State<SessionsScreen> {
           const SizedBox(height: 9),
 
           Expanded(
-            child:
-                filtered.isEmpty
+            child: app.isLoading
+                ? const ShimmerListSkeleton(count: 5, itemHeight: 84)
+                : filtered.isEmpty
                     ? Center(
                       child: _filter != 'Barchasi'
                           ? EmptyStateView(

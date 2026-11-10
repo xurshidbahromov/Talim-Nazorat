@@ -1449,3 +1449,268 @@ class EmptyStateView extends StatelessWidget {
   }
 }
 
+/// Silliq muz effektli Shimmer yuklanish animatsiyasi (Skeleton loading)
+class ShimmerLoading extends StatefulWidget {
+  final Widget child;
+  final bool isLoading;
+
+  const ShimmerLoading({
+    super.key,
+    required this.child,
+    this.isLoading = true,
+  });
+
+  @override
+  State<ShimmerLoading> createState() => _ShimmerLoadingState();
+}
+
+class _ShimmerLoadingState extends State<ShimmerLoading>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.isLoading) return widget.child;
+
+    final isDark = AppColors.isDark;
+    final baseColor = isDark
+        ? const Color(0xFF1E293B).withValues(alpha: 0.6)
+        : const Color(0xFFE2E8F0).withValues(alpha: 0.7);
+    final highlightColor = isDark
+        ? const Color(0xFF334155).withValues(alpha: 0.8)
+        : Colors.white.withValues(alpha: 0.85);
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return ShaderMask(
+          blendMode: BlendMode.srcATop,
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: const Alignment(-1.0, -0.3),
+              end: const Alignment(1.0, 0.3),
+              stops: [
+                (_controller.value - 0.3).clamp(0.0, 1.0),
+                _controller.value.clamp(0.0, 1.0),
+                (_controller.value + 0.3).clamp(0.0, 1.0),
+              ],
+              colors: [
+                baseColor,
+                highlightColor,
+                baseColor,
+              ],
+            ).createShader(bounds);
+          },
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+/// Skelet bloki (Skeleton block)
+class ShimmerBox extends StatelessWidget {
+  final double? width;
+  final double height;
+  final double borderRadius;
+  final EdgeInsetsGeometry? margin;
+
+  const ShimmerBox({
+    super.key,
+    this.width,
+    required this.height,
+    this.borderRadius = 8,
+    this.margin,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppColors.isDark;
+    return Container(
+      width: width,
+      height: height,
+      margin: margin,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+        borderRadius: BorderRadius.circular(borderRadius),
+      ),
+    );
+  }
+}
+
+/// Standart karta skeleti (O'quvchi, Baholash yoki Mashg'ulot kartasi uchun)
+class ShimmerCardTile extends StatelessWidget {
+  final double height;
+  final double borderRadius;
+  final EdgeInsetsGeometry? margin;
+
+  const ShimmerCardTile({
+    super.key,
+    this.height = 76,
+    this.borderRadius = 18,
+    this.margin = const EdgeInsets.only(bottom: 9),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppColors.isDark;
+
+    return Container(
+      height: height,
+      margin: margin,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surface : Colors.white,
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(
+          color: AppColors.cardGlassBorder,
+          width: 1.0,
+        ),
+        boxShadow: AppColors.softShadow,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Monogram / Avatar skeleti
+          ShimmerBox(
+            width: 44,
+            height: 44,
+            borderRadius: 14,
+          ),
+          const SizedBox(width: 14),
+          // Sarlavha va matn qatorlari
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ShimmerBox(
+                  width: double.infinity,
+                  height: 14,
+                  borderRadius: 6,
+                ),
+                const SizedBox(height: 8),
+                FractionallySizedBox(
+                  widthFactor: 0.65,
+                  child: ShimmerBox(
+                    height: 11,
+                    borderRadius: 5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          // O'ng tarafdagi status pill skeleti
+          ShimmerBox(
+            width: 58,
+            height: 24,
+            borderRadius: 999,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Ro'yxat ko'rinishidagi Shimmer skeleton (List skeleton)
+class ShimmerListSkeleton extends StatelessWidget {
+  final int count;
+  final double itemHeight;
+  final double itemRadius;
+
+  const ShimmerListSkeleton({
+    super.key,
+    this.count = 6,
+    this.itemHeight = 76,
+    this.itemRadius = 18,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ShimmerLoading(
+      child: ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        padding: EdgeInsets.zero,
+        itemCount: count,
+        itemBuilder: (_, _) => ShimmerCardTile(
+          height: itemHeight,
+          borderRadius: itemRadius,
+        ),
+      ),
+    );
+  }
+}
+
+/// Dashboard KPI kartalari uchun Shimmer skeleton
+class ShimmerKpiGridSkeleton extends StatelessWidget {
+  const ShimmerKpiGridSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppColors.isDark;
+
+    Widget buildKpiSkeleton() {
+      return Container(
+        height: 120,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surface : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.cardGlassBorder, width: 1.0),
+          boxShadow: AppColors.softShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ShimmerBox(width: 90, height: 13, borderRadius: 5),
+                ShimmerBox(width: 28, height: 28, borderRadius: 8),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerBox(width: 54, height: 26, borderRadius: 6),
+                const SizedBox(height: 6),
+                ShimmerBox(width: 110, height: 11, borderRadius: 4),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ShimmerLoading(
+      child: ResponsiveGlassGrid(
+        mobileColumns: 2,
+        tabletColumns: 2,
+        desktopColumns: 4,
+        spacing: 9,
+        children: List.generate(4, (_) => buildKpiSkeleton()),
+      ),
+    );
+  }
+}
+
+

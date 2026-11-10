@@ -281,8 +281,9 @@ class _StudentsListScreenState extends State<StudentsListScreen> {
 
           // Bolalar ro'yxati
           Expanded(
-            child:
-                students.isEmpty
+            child: app.isLoading
+                ? const ShimmerListSkeleton(count: 6, itemHeight: 82)
+                : students.isEmpty
                     ? Center(
                       child: (app.searchQuery.isNotEmpty ||
                               app.selectedGrade != null ||

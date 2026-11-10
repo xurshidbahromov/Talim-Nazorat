@@ -164,7 +164,10 @@ class DashboardScreen extends StatelessWidget {
               ],
 
               // 3. 4 TA ASOSIY KPI KARTALARI (0% overflow ResponsiveGlassGrid + Free-standing icons)
-              ResponsiveGlassGrid(
+              if (app.isLoading)
+                const ShimmerKpiGridSkeleton()
+              else
+                ResponsiveGlassGrid(
                     mobileColumns: 2,
                     tabletColumns: 2,
                     desktopColumns: 4,
