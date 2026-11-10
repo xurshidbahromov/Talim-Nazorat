@@ -1225,6 +1225,610 @@ class StatusPill extends StatelessWidget {
   }
 }
 
+enum EmptyIllustrationType {
+  auto,
+  search,
+  students,
+  assessments,
+  sessions,
+  iep,
+  referrals,
+  analytics,
+  alerts,
+  generic,
+}
+
+/// No-AI-slop professional ishlangan illustratsion kompozitsiya
+///
+/// AI slop (oddiy doira + neon binafsharang/ko'k glow + bitta markaziy ikonka)
+/// o'rniga haqiqiy insoniy arxitektura:
+/// - Nozik konturli asosiy dok / karta
+/// - Ichki mikro-skelet chiziqlari (foydalanuvchi ma'lumot qayerda paydo bo'lishini tasavvur qiladi)
+/// - Geometrik burchak belgilari va ofsetli qatlamlar
+/// - Floating badge (mayin tushgan soya, toza chegara)
+/// - Sokin, intellektual rang palitrasi
+class EmptyStateIllustration extends StatelessWidget {
+  final EmptyIllustrationType type;
+  final IconData? fallbackIcon;
+  final Color? accentColor;
+  final bool compact;
+
+  const EmptyStateIllustration({
+    super.key,
+    this.type = EmptyIllustrationType.auto,
+    this.fallbackIcon,
+    this.accentColor,
+    this.compact = false,
+  });
+
+  static EmptyIllustrationType resolveType(IconData? icon) {
+    if (icon == null) return EmptyIllustrationType.generic;
+    if (icon == LucideIcons.search ||
+        icon == LucideIcons.filterX ||
+        icon == LucideIcons.searchX ||
+        icon == LucideIcons.userX) {
+      return EmptyIllustrationType.search;
+    }
+    if (icon == LucideIcons.users ||
+        icon == LucideIcons.userPlus ||
+        icon == LucideIcons.userCheck ||
+        icon == LucideIcons.graduationCap) {
+      return EmptyIllustrationType.students;
+    }
+    if (icon == LucideIcons.clipboardCheck ||
+        icon == LucideIcons.clipboardList ||
+        icon == LucideIcons.clipboard) {
+      return EmptyIllustrationType.assessments;
+    }
+    if (icon == LucideIcons.calendar ||
+        icon == LucideIcons.calendarDays ||
+        icon == LucideIcons.calendarPlus ||
+        icon == LucideIcons.calendarX ||
+        icon == LucideIcons.clock) {
+      return EmptyIllustrationType.sessions;
+    }
+    if (icon == LucideIcons.bookOpen ||
+        icon == LucideIcons.bookCheck ||
+        icon == LucideIcons.fileText) {
+      return EmptyIllustrationType.iep;
+    }
+    if (icon == LucideIcons.gitPullRequest ||
+        icon == LucideIcons.arrowLeftRight ||
+        icon == LucideIcons.share2) {
+      return EmptyIllustrationType.referrals;
+    }
+    if (icon == LucideIcons.chartLine ||
+        icon == LucideIcons.chartColumn ||
+        icon == LucideIcons.trendingUp) {
+      return EmptyIllustrationType.analytics;
+    }
+    if (icon == LucideIcons.triangleAlert ||
+        icon == LucideIcons.shieldAlert ||
+        icon == LucideIcons.bell) {
+      return EmptyIllustrationType.alerts;
+    }
+    return EmptyIllustrationType.generic;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveType =
+        type == EmptyIllustrationType.auto
+            ? resolveType(fallbackIcon)
+            : type;
+
+    final primary = accentColor ?? AppColors.primary;
+    final isDark = AppColors.isDark;
+
+    final double width = compact ? 120.0 : 148.0;
+    final double height = compact ? 84.0 : 100.0;
+
+    return SizedBox(
+      width: width,
+      height: height,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          // 1. Orqa sokin ofset karta (chuqurlik va qatlam hissi)
+          Positioned(
+            top: compact ? 6 : 8,
+            left: compact ? 14 : 18,
+            right: compact ? 14 : 18,
+            bottom: compact ? 10 : 12,
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.02)
+                    : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : const Color(0xFFE2E8F0),
+                  width: 1.0,
+                ),
+              ),
+            ),
+          ),
+
+          // 2. Asosiy hujjat / dok yuzasi
+          Positioned(
+            top: 0,
+            left: compact ? 22 : 28,
+            right: compact ? 22 : 28,
+            bottom: compact ? 16 : 20,
+            child: Container(
+              padding: EdgeInsets.all(compact ? 10 : 12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E222D) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.10)
+                      : const Color(0xFFCBD5E1),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0x0A0F172A),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: _buildInnerBlueprint(effectiveType, primary, isDark),
+            ),
+          ),
+
+          // 3. Floating Signature Badge (Amal / Mavzu belgisi)
+          Positioned(
+            right: compact ? 10 : 14,
+            bottom: 0,
+            child: _buildFloatingBadge(effectiveType, primary, isDark),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ichki mikro-skelet chiziqlari — har bir mavzuga mos intellektual chizma
+  Widget _buildInnerBlueprint(
+    EmptyIllustrationType illustrationType,
+    Color primary,
+    bool isDark,
+  ) {
+    final barBg =
+        isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE2E8F0);
+    final barMuted =
+        isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF1F5F9);
+
+    switch (illustrationType) {
+      case EmptyIllustrationType.search:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: compact ? 12 : 14,
+                  height: compact ? 12 : 14,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: primary.withValues(alpha: 0.5), width: 1.5),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: barBg,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: 48,
+              height: 4,
+              decoration: BoxDecoration(
+                color: barMuted,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ],
+        );
+
+      case EmptyIllustrationType.students:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: compact ? 14 : 16,
+                  height: compact ? 14 : 16,
+                  decoration: BoxDecoration(
+                    color: primary.withValues(alpha: 0.14),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    LucideIcons.user,
+                    size: compact ? 9 : 10,
+                    color: primary,
+                  ),
+                ),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 4.5,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: barBg,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                      const SizedBox(height: 3.5),
+                      Container(
+                        height: 3.5,
+                        width: 38,
+                        decoration: BoxDecoration(
+                          color: barMuted,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+
+      case EmptyIllustrationType.assessments:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: compact ? 12 : 14,
+                  height: compact ? 12 : 14,
+                  decoration: BoxDecoration(
+                    color: primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: primary.withValues(alpha: 0.4),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Icon(
+                    LucideIcons.check,
+                    size: compact ? 8 : 9,
+                    color: primary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: barBg,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 7),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: barMuted,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+          ],
+        );
+
+      case EmptyIllustrationType.sessions:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '09:00',
+                    style: TextStyle(
+                      fontSize: compact ? 7.5 : 8.5,
+                      fontWeight: FontWeight.w700,
+                      color: primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Container(
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: barBg,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 7),
+            Container(
+              width: 52,
+              height: 4,
+              decoration: BoxDecoration(
+                color: barMuted,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ],
+        );
+
+      case EmptyIllustrationType.iep:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 42,
+              height: 5,
+              decoration: BoxDecoration(
+                color: primary.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              width: double.infinity,
+              height: 4,
+              decoration: BoxDecoration(
+                color: barBg,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 5),
+            Container(
+              width: 50,
+              height: 4,
+              decoration: BoxDecoration(
+                color: barMuted,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ],
+        );
+
+      case EmptyIllustrationType.referrals:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: primary.withValues(alpha: 0.7),
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Container(
+                    height: 2,
+                    color: barBg,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    border: Border.all(color: primary, width: 1.5),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 7),
+            Container(
+              width: 46,
+              height: 4,
+              decoration: BoxDecoration(
+                color: barMuted,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ],
+        );
+
+      case EmptyIllustrationType.analytics:
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Container(
+              width: 6,
+              height: 14,
+              decoration: BoxDecoration(
+                color: barMuted,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Container(
+              width: 6,
+              height: 24,
+              decoration: BoxDecoration(
+                color: barBg,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Container(
+              width: 6,
+              height: 34,
+              decoration: BoxDecoration(
+                color: primary.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Container(
+              width: 6,
+              height: 20,
+              decoration: BoxDecoration(
+                color: barBg,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ],
+        );
+
+      case EmptyIllustrationType.alerts:
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              LucideIcons.checkCircle2,
+              size: compact ? 16 : 20,
+              color: AppColors.success,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Hammasi joyida',
+              style: TextStyle(
+                fontSize: compact ? 9.5 : 10.5,
+                fontWeight: FontWeight.w600,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+            ),
+          ],
+        );
+
+      case EmptyIllustrationType.generic:
+      case EmptyIllustrationType.auto:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 36,
+              height: 5,
+              decoration: BoxDecoration(
+                color: barBg,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              width: double.infinity,
+              height: 4,
+              decoration: BoxDecoration(
+                color: barMuted,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ],
+        );
+    }
+  }
+
+  /// O'ng pastki qismdagi suzuvchi lakonik nishon (badge)
+  Widget _buildFloatingBadge(
+    EmptyIllustrationType illustrationType,
+    Color primary,
+    bool isDark,
+  ) {
+    final IconData badgeIcon;
+    switch (illustrationType) {
+      case EmptyIllustrationType.search:
+        badgeIcon = LucideIcons.search;
+        break;
+      case EmptyIllustrationType.students:
+        badgeIcon = LucideIcons.users;
+        break;
+      case EmptyIllustrationType.assessments:
+        badgeIcon = LucideIcons.clipboardCheck;
+        break;
+      case EmptyIllustrationType.sessions:
+        badgeIcon = LucideIcons.calendar;
+        break;
+      case EmptyIllustrationType.iep:
+        badgeIcon = LucideIcons.bookOpen;
+        break;
+      case EmptyIllustrationType.referrals:
+        badgeIcon = LucideIcons.arrowLeftRight;
+        break;
+      case EmptyIllustrationType.analytics:
+        badgeIcon = LucideIcons.chartLine;
+        break;
+      case EmptyIllustrationType.alerts:
+        badgeIcon = LucideIcons.bellRing;
+        break;
+      case EmptyIllustrationType.generic:
+      case EmptyIllustrationType.auto:
+        badgeIcon = fallbackIcon ?? LucideIcons.sparkles;
+        break;
+    }
+
+    final double size = compact ? 28.0 : 34.0;
+    final double iconSize = compact ? 13.5 : 16.0;
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF222834) : Colors.white,
+        borderRadius: BorderRadius.circular(compact ? 9 : 11),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.14)
+              : const Color(0xFFE2E8F0),
+          width: 1.0,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x120F172A),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: Icon(
+        badgeIcon,
+        size: iconSize,
+        color: primary,
+      ),
+    );
+  }
+}
+
 /// Foydalanuvchini faollashtiruvchi premium bo'sh holat vidjeti (Apple / Linear uslubida)
 class EmptyStateView extends StatelessWidget {
   final IconData icon;
@@ -1238,6 +1842,7 @@ class EmptyStateView extends StatelessWidget {
   final VoidCallback? onSecondaryAction;
   final Widget? customAction;
   final Color? accentColor;
+  final EmptyIllustrationType illustrationType;
   final bool compact;
   final bool boxed;
   final double maxWidth;
@@ -1255,6 +1860,7 @@ class EmptyStateView extends StatelessWidget {
     this.onSecondaryAction,
     this.customAction,
     this.accentColor,
+    this.illustrationType = EmptyIllustrationType.auto,
     this.compact = false,
     this.boxed = true,
     this.maxWidth = 480,
@@ -1263,58 +1869,12 @@ class EmptyStateView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveAccent = accentColor ?? AppColors.primary;
-    final isDark = AppColors.isDark;
 
-    final iconBoxSize = compact ? 48.0 : 56.0;
-    final iconSize = compact ? 22.0 : 26.0;
-    final haloSize = compact ? 70.0 : 82.0;
-
-    final haloWidget = Stack(
-      alignment: Alignment.center,
-      children: [
-        // 1. Mayin halo doirasi (yumshoq jilo)
-        Container(
-          width: haloSize,
-          height: haloSize,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [
-                effectiveAccent.withValues(alpha: isDark ? 0.18 : 0.12),
-                effectiveAccent.withValues(alpha: 0.0),
-              ],
-            ),
-          ),
-        ),
-        // 2. Konsentrik ichki ikonka konteyneri
-        Container(
-          width: iconBoxSize,
-          height: iconBoxSize,
-          decoration: BoxDecoration(
-            color: isDark
-                ? effectiveAccent.withValues(alpha: 0.16)
-                : AppColors.primaryLight,
-            borderRadius: BorderRadius.circular(compact ? 15 : 18),
-            border: Border.all(
-              color: effectiveAccent.withValues(alpha: isDark ? 0.32 : 0.22),
-              width: 1.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: effectiveAccent.withValues(alpha: isDark ? 0.20 : 0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Icon(
-            icon,
-            size: iconSize,
-            color: effectiveAccent,
-          ),
-        ),
-      ],
+    final visualWidget = EmptyStateIllustration(
+      type: illustrationType,
+      fallbackIcon: icon,
+      accentColor: effectiveAccent,
+      compact: compact,
     );
 
     Widget? buttonsRow;
@@ -1379,8 +1939,8 @@ class EmptyStateView extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        haloWidget,
-        SizedBox(height: compact ? 12 : 16),
+        visualWidget,
+        SizedBox(height: compact ? 14 : 18),
         Text(
           title,
           textAlign: TextAlign.center,
